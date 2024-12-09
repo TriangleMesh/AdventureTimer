@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # 映射本地 8080 端口到容器
+    volumes:
+      - .:/app # 挂载当前目录到容器中
+    environment:
+      - GIN_MODE=release # 设置 Gin 框架的运行模式
+    depends_on:
+      - db # 等待数据库服务启动
+
+  db:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password # 替换为强密码
+      MYSQL_DATABASE: adventure_timer # 初始化数据库
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3307:3306" # 映射 MySQL 端口
+    volumes:
+      - db_data:/var/lib/mysql # 持久化数据库数据
+
+volumes:
+  db_data:

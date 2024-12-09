@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adventure Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .hidden {
+            display: none;
+        }
+        select, input, button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Adventure Timer</h1>
+    
+    <div class="form-group">
+        <label for="mode">Select Mode:</label>
+        <select id="mode" onchange="toggleCustomFields()">
+            <option value="1">Mode 1 (40min class/10min break)</option>
+            <option value="2">Mode 2 (80min class/15min break)</option>
+            <option value="3">Mode 3 (Custom time)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="total_time">Total Duration (HH MM SS):</label>
+        <input type="number" id="total_hours" min="0" value="0" style="width: 60px"> 
+        <input type="number" id="total_minutes" min="0" value="0" style="width: 60px">
+        <input type="number" id="total_seconds" min="0" value="0" style="width: 60px">
+    </div>
+
+    <div id="custom_times" class="hidden">
+        <div class="form-group">
+            <label for="lesson_time">Class Duration (HH MM SS):</label>
+            <input type="number" id="lesson_hours" min="0" value="0" style="width: 60px">
+            <input type="number" id="lesson_minutes" min="0" value="0" style="width: 60px">
+            <input type="number" id="lesson_seconds" min="0" value="0" style="width: 60px">
+        </div>
+
+        <div class="form-group">
+            <label for="break_time">Break Duration (HH MM SS):</label>
+            <input type="number" id="break_hours" min="0" value="0" style="width: 60px">
+            <input type="number" id="break_minutes" min="0" value="0" style="width: 60px">
+            <input type="number" id="break_seconds" min="0" value="0" style="width: 60px">
+        </div>
+    </div>
+
+    <button onclick="startTimer()">Start Timer</button>
+
+    <div id="result"></div>
+
+    <script>
+        function toggleCustomFields() {
+            const mode = document.getElementById('mode').value;
+            const customFields = document.getElementById('custom_times');
+            customFields.className = mode === '3' ? '' : 'hidden';
+        }
+
+        function formatTimeInput(hours, minutes, seconds) {
+            return `${hours} ${minutes} ${seconds}`;
+        }
+
+        async function startTimer() {
+            const mode = document.getElementById('mode').value;
+            const totalHours = document.getElementById('total_hours').value || '0';
+            const totalMinutes = document.getElementById('total_minutes').value || '0';
+            const totalSeconds = document.getElementById('total_seconds').value || '0';
+
+            const formData = new FormData();
+            formData.append('mode', mode);
+            formData.append('total_time', formatTimeInput(totalHours, totalMinutes, totalSeconds));
+
+            if (mode === '3') {
+                const lessonHours = document.getElementById('lesson_hours').value || '0';
+                const lessonMinutes = document.getElementById('lesson_minutes').value || '0';
+                const lessonSeconds = document.getElementById('lesson_seconds').value || '0';
+                
+                const breakHours = document.getElementById('break_hours').value || '0';
+                const breakMinutes = document.getElementById('break_minutes').value || '0';
+                const breakSeconds = document.getElementById('break_seconds').value || '0';
+
+                formData.append('lesson_time', formatTimeInput(lessonHours, lessonMinutes, lessonSeconds));
+                formData.append('break_time', formatTimeInput(breakHours, breakMinutes, breakSeconds));
+            }
+
+            try {
+                const response = await fetch('/start', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                document.getElementById('result').textContent = data.message || data.error;
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
